@@ -28,11 +28,14 @@ BUILD_LD = "${CXX}"
 BUILD_AR = "llvm-ar"
 
 DEPENDS = "clang-native ninja-native"
-DEPENDS:append:runtime-llvm = " compiler-rt-native libcxx-native"
+#DEPENDS:append:runtime-llvm = " compiler-rt-native libcxx-native"
+DEPENDS_append_runtime-llvm = "${@bb.utils.contains('TCLIBC', 'musl', ' compiler-rt-native libcxx-native', '' ,d)}"
 # Use libcxx headers for native parts
-CXXFLAGS:append:runtime-llvm = " -isysroot=${STAGING_DIR_NATIVE} -stdlib=libc++"
+#CXXFLAGS:append:runtime-llvm = " -isysroot=${STAGING_DIR_NATIVE} -stdlib=libc++"
+CXXFLAGS_append_runtime-llvm = "${@bb.utils.contains('TCLIBC', 'musl', ' -isysroot=${STAGING_DIR_NATIVE} -stdlib=libc++', '' ,d)}"
 # Use libgcc for native parts
-LDFLAGS:append:runtime-llvm = " -rtlib=libgcc -unwindlib=libgcc -stdlib=libc++ -lc++abi -rpath ${STAGING_LIBDIR_NATIVE}"
+#LDFLAGS:append:runtime-llvm = " -rtlib=libgcc -unwindlib=libgcc -stdlib=libc++ -lc++abi -rpath ${STAGING_LIBDIR_NATIVE}"
+LDFLAGS_append_runtime-llvm = "${@bb.utils.contains('TCLIBC', 'musl', ' -rtlib=libgcc -unwindlib=libgcc -stdlib=libc++ -lc++abi -rpath ${STAGING_LIBDIR_NATIVE}', '' ,d)}"
 
 do_configure[noexec] = "1"
 
@@ -45,4 +48,4 @@ do_install() {
 	install -m 0755 ${S}/out/Release/gn ${D}${bindir}/gn
 }
 
-INSANE_SKIP:${PN} += "already-stripped"
+INSANE_SKIP_${PN} += "already-stripped"
